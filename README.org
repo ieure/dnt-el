@@ -1,0 +1,12 @@
+* Do Not Track
+
+  This package is:
+
+  - A series of rules for stripping trackers from URLs.
+  - Helper functions which shim that into =browse-url= and
+    =emms-add-url=.
+
+  This prevents advertisers from tracking you when you open URLs (or
+  listen to podcasts) in Emacs.
+
+  You should use this in conjunction with something like [[https://github.com/idlewan/link_cleaner][Link Cleaner]].
