@@ -88,6 +88,9 @@
      ((string= "out.reddit.com" (url-host urlobj))
       (dnt--extract-url-from-query urlobj "url"))
 
+     ((string= "r.tapatalk.com" (url-host urlobj))
+      (dnt--extract-url-from-query urlobj "url"))
+
      ((s-contains? "steamcommunity.com/linkfilter" url)
       (dnt--extract-url-from-query urlobj "url"))
 
