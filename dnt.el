@@ -32,19 +32,18 @@
 (require 'url-parse)
 
 (defun dnt--clean-podtrac-play (urlobj)
-  "Strip Podtrac tracking garbage out of podcast URLs."
-  ;; ex "https://play.podtrac.com/npr-344098539/npr.mc.tritondigital.com/WAITWAIT_PODCAST/media/anon.npr-podcasts/podcast/npr/waitwait/2019/03/20190302_waitwait_wwdtmpodcast190302-133e5545-b77b-4fdd-ac62-df172a41bb31.mp3?orgId=1&d=2993&p=344098539&story=699615041&t=podcast&e=699615041&ft=pod&f=344098539"
+  "Return a URL with Podtrac trackers removed."
   (concat "https://"
           (caddr (s-split-up-to "/" (car (url-path-and-query urlobj)) 2))))
 
 (defun dnt--clean-podtrac-www (urlobj)
-  "Strip Podtrac tracking garbage out of podcast URLs."
-  ;; ex "http://www.podtrac.com/pts/redirect.mp3/archive.org/download/rr12019/SciFi557.mp3"
+  "Return a URL with Podtrac trackers removed."
   (concat "https://"
           (cadr (s-split-up-to "redirect.mp3/"
                                (car (url-path-and-query urlobj)) 1))))
 
 (defun dnt--clean-google-analytics (urlobj)
+  "Return a URL with Google Analytics tracking removed."
   (let* ((path-and-query (url-path-and-query urlobj))
          (path (car path-and-query))
          (query (cdr path-and-query)))
@@ -57,17 +56,17 @@
     (setf (url-filename urlobj) path)
     (url-recreate-url urlobj)))
 
-
-;; https://www.amazon.com/AmazonBasics-Type-C-USB-Male-Cable/dp/B01GGKYQ02/ref=sr_1_1?s=amazonbasics&srs=10112675011&ie=UTF8&qid=1489067885&sr=8-1&keywords=usb-c
 (defun dnt--clean-amazon (urlobj)
+  "Return a URL with Amazon tracking removed."
   (setf (url-filename urlobj) (car (s-split-up-to "ref=" (car (url-path-and-query urlobj)) 1)))
   (url-recreate-url urlobj))
 
 (defun dnt--extract-url-from-query (urlobj param)
+  "Return a URL from the querystring of a different URL."
   (cadr (assoc param (url-parse-query-string (cdr (url-path-and-query urlobj))))))
 
 (defun dnt--clean (url)
-  "Strip tracking garbage out of URLs."
+  "Return a URL with one layer of tracking services removed."
   (let* ((urlobj (url-generic-parse-url url)))
     (cond
      ((string= "play.podtrac.com" (url-host urlobj))
@@ -98,7 +97,7 @@
 
 ;;;###autoload
 (defun dnt (url)
-  "Strip tracking garbage out of URLs."
+  "Return a URL with tracking services removed."
   (let ((new (dnt--clean url)))
     (if (string= url new)
         url
@@ -106,7 +105,7 @@
 
 ;;;###autoload
 (defun dnt-emms ()
-  "Strip tracking from any URL added to EMMS."
+  "Enable tracker removal from URLs added to EMMS."
   (when (fboundp #'emms-add-url)
     (add-function :filter-args (symbol-function 'emms-add-url)
                   (lambda (url-arg)
@@ -114,11 +113,21 @@
 
 ;;;###autoload
 (defun dnt-browse-url ()
-  "Strip tracking from any URL opened."
+  "Enable tracker removal from browsed URLs."
   (add-function :filter-args (symbol-function 'browse-url)
                 (lambda (args)
                   (cons (dnt (car args))
                         (cdr args)))))
+
+(ert-deftest dnt--test-clean-tapatalk ()
+  (should (string= "https://forums.arcade-museum.com/showthread.php?t=446645" (dnt "https://r.tapatalk.com/shareLink?share_fid=19164&share_tid=446645&url=https%3A%2F%2Fforums%2Earcade-museum%2Ecom%2Fshowthread%2Ephp%3Ft%3D446645&share_type=t"))))
+
+(ert-deftest dnt--test-clean-amazon ()
+  (should (string= "https://www.amazon.com/AmazonBasics-Type-C-USB-Male-Cable/dp/B01GGKYQ02/" (dnt "https://www.amazon.com/AmazonBasics-Type-C-USB-Male-Cable/dp/B01GGKYQ02/ref=sr_1_1?s=amazonbasics&srs=10112675011&ie=UTF8&qid=1489067885&sr=8-1&keywords=usb-c"))))
+
+(ert-deftest dnt--test-clean-podtrac ()
+  (should (string= "https://archive.org/download/rr12019/SciFi557.mp3" (dnt "http://www.podtrac.com/pts/redirect.mp3/archive.org/download/rr12019/SciFi557.mp3")))
+  (should (string= "https://npr.mc.tritondigital.com/WAITWAIT_PODCAST/media/anon.npr-podcasts/podcast/npr/waitwait/2019/03/20190302_waitwait_wwdtmpodcast190302-133e5545-b77b-4fdd-ac62-df172a41bb31.mp3" (dnt "https://play.podtrac.com/npr-344098539/npr.mc.tritondigital.com/WAITWAIT_PODCAST/media/anon.npr-podcasts/podcast/npr/waitwait/2019/03/20190302_waitwait_wwdtmpodcast190302-133e5545-b77b-4fdd-ac62-df172a41bb31.mp3?orgId=1&d=2993&p=344098539&story=699615041&t=podcast&e=699615041&ft=pod&f=344098539"))))
 
 (provide 'dnt)
 
