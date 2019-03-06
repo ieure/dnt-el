@@ -32,18 +32,18 @@
 (require 'url-parse)
 
 (defun dnt--clean-podtrac-play (urlobj)
-  "Return a URL with Podtrac trackers removed."
+  "Return URLOBJ with Podtrac trackers removed."
   (concat "https://"
           (caddr (s-split-up-to "/" (car (url-path-and-query urlobj)) 2))))
 
 (defun dnt--clean-podtrac-www (urlobj)
-  "Return a URL with Podtrac trackers removed."
+  "Return a URLOBJ with Podtrac trackers removed."
   (concat "https://"
           (cadr (s-split-up-to "redirect.mp3/"
                                (car (url-path-and-query urlobj)) 1))))
 
 (defun dnt--clean-google-analytics (urlobj)
-  "Return a URL with Google Analytics tracking removed."
+  "Return a URLOBJ with Google Analytics tracking removed."
   (let* ((path-and-query (url-path-and-query urlobj))
          (path (car path-and-query))
          (query (cdr path-and-query)))
@@ -57,12 +57,12 @@
     (url-recreate-url urlobj)))
 
 (defun dnt--clean-amazon (urlobj)
-  "Return a URL with Amazon tracking removed."
+  "Return a URLOBJ with Amazon tracking removed."
   (setf (url-filename urlobj) (car (s-split-up-to "ref=" (car (url-path-and-query urlobj)) 1)))
   (url-recreate-url urlobj))
 
 (defun dnt--extract-url-from-query (urlobj param)
-  "Return a URL from the querystring of a different URL."
+  "Return a URLOBJ from the PARAM query of a different URL."
   (cadr (assoc param (url-parse-query-string (cdr (url-path-and-query urlobj))))))
 
 (defun dnt--clean (url)
