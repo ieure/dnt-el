@@ -42,6 +42,10 @@
           (cadr (s-split-up-to "redirect.mp3/"
                                (car (url-path-and-query urlobj)) 1))))
 
+(defun dnt--clean-chartable (urlobj)
+  "Strip Chartable tracking from URLs."
+  (concat "https://" (cadddr (s-split-up-to "/" (car (url-path-and-query urlobj)) 3))))
+
 (defun dnt--clean-google-analytics (urlobj)
   "Return a URLOBJ with Google Analytics tracking removed."
   (let* ((path-and-query (url-path-and-query urlobj))
@@ -68,8 +72,12 @@
      ((string= "play.podtrac.com" (url-host urlobj))
       (dnt--clean-podtrac-play urlobj))
 
-     ((string= "www.podtrac.com" (url-host urlobj))
+     ((or (string= "www.podtrac.com" (url-host urlobj))
+          (string= "dts.podtrac.com" (url-host urlobj)))
       (dnt--clean-podtrac-www urlobj))
+
+     ((or (string= "chtbl.com" (url-host urlobj)))
+      (dnt--clean-chartable urlobj))
 
      ((s-contains? "utm_" url)
       (dnt--clean-google-analytics urlobj))
@@ -127,6 +135,9 @@
 
 (ert-deftest dnt--test-google-analytics ()
   (should (string= "http://meyerweb.com/eric/thoughts/2017/03/07/welcome-to-the-grid/" (dnt "http://meyerweb.com/eric/thoughts/2017/03/07/welcome-to-the-grid/?utm_source=frontendfocus&utm_medium=email"))))
+
+(ert-deftest dnt--test-chartable ()
+  (should (string= "https://rss.art19.com/episodes/47d9a8cd-4a25-408d-9205-3a13d36e4546.mp3" (dnt "https://dts.podtrac.com/redirect.mp3/chtbl.com/track/9EE2G/rss.art19.com/episodes/47d9a8cd-4a25-408d-9205-3a13d36e4546.mp3"))))
 
 (provide 'dnt)
 
