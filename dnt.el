@@ -45,13 +45,9 @@
 (defun dnt--clean-google-analytics (urlobj)
   "Return a URLOBJ with Google Analytics tracking removed."
   (let* ((path-and-query (url-path-and-query urlobj))
-         (path (car path-and-query))
-         (query (cdr path-and-query)))
-
-    (if-let ((new-query (cl-remove-if
-                         (lambda (elt)
-                           (s-starts-with? "utm_" (car elt)))
-                         (url-parse-query-string query))))
+         (path (car path-and-query)))
+    (if-let ((new-query (thread-first (lambda (kv) (s-starts-with? "utm_" (car kv)))
+                          (cl-remove-if (url-parse-query-string (cdr path-and-query))))))
         (setq path (concat path "?" (url-build-query-string new-query))))
     (setf (url-filename urlobj) path)
     (url-recreate-url urlobj)))
@@ -128,6 +124,9 @@
 (ert-deftest dnt--test-clean-podtrac ()
   (should (string= "https://archive.org/download/rr12019/SciFi557.mp3" (dnt "http://www.podtrac.com/pts/redirect.mp3/archive.org/download/rr12019/SciFi557.mp3")))
   (should (string= "https://npr.mc.tritondigital.com/WAITWAIT_PODCAST/media/anon.npr-podcasts/podcast/npr/waitwait/2019/03/20190302_waitwait_wwdtmpodcast190302-133e5545-b77b-4fdd-ac62-df172a41bb31.mp3" (dnt "https://play.podtrac.com/npr-344098539/npr.mc.tritondigital.com/WAITWAIT_PODCAST/media/anon.npr-podcasts/podcast/npr/waitwait/2019/03/20190302_waitwait_wwdtmpodcast190302-133e5545-b77b-4fdd-ac62-df172a41bb31.mp3?orgId=1&d=2993&p=344098539&story=699615041&t=podcast&e=699615041&ft=pod&f=344098539"))))
+
+(ert-deftest dnt--test-google-analytics ()
+  (should (string= "http://meyerweb.com/eric/thoughts/2017/03/07/welcome-to-the-grid/" (dnt "http://meyerweb.com/eric/thoughts/2017/03/07/welcome-to-the-grid/?utm_source=frontendfocus&utm_medium=email"))))
 
 (provide 'dnt)
 
