@@ -61,6 +61,11 @@
   (setf (url-filename urlobj) (car (s-split-up-to "ref=" (car (url-path-and-query urlobj)) 1)))
   (url-recreate-url urlobj))
 
+(defun dnt--clean-nyt (urlobj)
+  "Return a URLOBJ with New York Times tracking removed."
+  (setf (url-filename urlobj) (car (url-path-and-query urlobj)))
+  (url-recreate-url urlobj))
+
 (defun dnt--extract-url-from-query (urlobj param)
   "Return a URLOBJ from the PARAM query of a different URL."
   (cadr (assoc param (url-parse-query-string (cdr (url-path-and-query urlobj))))))
@@ -81,6 +86,9 @@
 
      ((s-contains? "utm_" url)
       (dnt--clean-google-analytics urlobj))
+
+     ((s-contains? "smid=" url)
+      (dnt--clean-nyt urlobj))
 
      ((s-contains? "amazon" (url-host urlobj))
       (dnt--clean-amazon urlobj))
