@@ -147,6 +147,9 @@
 (ert-deftest dnt--test-chartable ()
   (should (string= "https://rss.art19.com/episodes/47d9a8cd-4a25-408d-9205-3a13d36e4546.mp3" (dnt "https://dts.podtrac.com/redirect.mp3/chtbl.com/track/9EE2G/rss.art19.com/episodes/47d9a8cd-4a25-408d-9205-3a13d36e4546.mp3"))))
 
+(ert-deftest dnt--test-nyt ()
+  (should (string= "https://www.nytimes.com/2019/03/16/us/cindy-yang-trump-donations.html" (dnt "https://www.nytimes.com/2019/03/16/us/cindy-yang-trump-donations.html?smid=nytcore-ios-share"))))
+
 (provide 'dnt)
 
 ;;; dnt.el ends here
