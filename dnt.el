@@ -31,6 +31,15 @@
 (require 's)
 (require 'url-parse)
 
+(defun dnt--filter-qs (urlobj pred)
+  (pcase (url-path-and-query urlobj)
+    (`(,path . ,query)
+     (let ((cleaned (cl-remove-if pred (url-parse-query-string query))))
+       (setf (url-filename urlobj)
+             (concat path (when cleaned
+                            (concat "?" (url-build-query-string cleaned))))))))
+  urlobj)
+
 (defun dnt--clean-podtrac-play (urlobj)
   "Return URLOBJ with Podtrac trackers removed."
   (concat "https://"
@@ -46,15 +55,13 @@
   "Strip Chartable tracking from URLs."
   (concat "https://" (cadddr (s-split-up-to "/" (car (url-path-and-query urlobj)) 3))))
 
+(defun dnt--clean-megaphonefm (urlobj)
+  "Strip Megaphone.fm tracking from URLs."
+  (url-recreate-url (dnt--filter-qs urlobj (lambda (kv) (string= "updated" (car kv))))))
+
 (defun dnt--clean-google-analytics (urlobj)
   "Return a URLOBJ with Google Analytics tracking removed."
-  (let* ((path-and-query (url-path-and-query urlobj))
-         (path (car path-and-query)))
-    (if-let ((new-query (thread-first (lambda (kv) (s-starts-with? "utm_" (car kv)))
-                          (cl-remove-if (url-parse-query-string (cdr path-and-query))))))
-        (setq path (concat path "?" (url-build-query-string new-query))))
-    (setf (url-filename urlobj) path)
-    (url-recreate-url urlobj)))
+    (url-recreate-url (dnt--filter-qs urlobj (lambda (kv) (s-starts-with? "utm_" (car kv))))))
 
 (defun dnt--clean-amazon (urlobj)
   "Return a URLOBJ with Amazon tracking removed."
@@ -81,8 +88,12 @@
           (string= "dts.podtrac.com" (url-host urlobj)))
       (dnt--clean-podtrac-www urlobj))
 
-     ((or (string= "chtbl.com" (url-host urlobj)))
+     ((string= "chtbl.com" (url-host urlobj))
       (dnt--clean-chartable urlobj))
+
+     ((and (s-contains? "megaphone.fm" (url-host urlobj))
+           (s-contains? "updated=" url))
+      (dnt--clean-megaphonefm urlobj))
 
      ((s-contains? "utm_" url)
       (dnt--clean-google-analytics urlobj))
