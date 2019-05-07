@@ -107,6 +107,9 @@
      ((string= "l.facebook.com" (url-host urlobj))
       (dnt--extract-url-from-query urlobj "u"))
 
+     ((s-contains? "www.icloud.com/attachment" url)
+      (dnt--extract-url-from-query urlobj "u"))
+
      ((string= "out.reddit.com" (url-host urlobj))
       (dnt--extract-url-from-query urlobj "url"))
 
