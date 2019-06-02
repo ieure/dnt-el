@@ -30,6 +30,7 @@
 (require 'subr-x)
 (require 's)
 (require 'url-parse)
+(require 'ert)
 
 (defun dnt--filter-qs (urlobj pred)
   (pcase (url-path-and-query urlobj)
