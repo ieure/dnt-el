@@ -161,7 +161,13 @@
 ;;;###autoload
 (defun dnt-emms ()
   "Enable tracker removal from URLs added to EMMS."
-  (eval-after-load "emms" #'dnt--emms*))
+  (with-demoted-errors "EMMS is not installed"
+        (require 'emms))
+  (when (featurep 'emms)
+    (add-function :filter-args (symbol-function 'emms-add-url)
+                  (lambda (url-arg)
+                    (list (dnt (car url-arg)))))
+    nil))
 
 (defun dnt--browse-url* ()
   (add-function :filter-args (symbol-function 'browse-url)
