@@ -130,21 +130,27 @@
         url
       (dnt new))))
 
+(defun dnt--emms* ()
+  "Enable tracker removal from URLs added to EMMS."
+  (add-function :filter-args (symbol-function 'emms-add-url)
+                (lambda (url-arg)
+                  (list (dnt (car url-arg))))))
+
 ;;;###autoload
 (defun dnt-emms ()
   "Enable tracker removal from URLs added to EMMS."
-  (when (fboundp #'emms-add-url)
-    (add-function :filter-args (symbol-function 'emms-add-url)
-                  (lambda (url-arg)
-                    (list (dnt (car url-arg)))))))
+  (eval-after-load "emms.el" #'dnt--emms*))
 
-;;;###autoload
-(defun dnt-browse-url ()
-  "Enable tracker removal from browsed URLs."
+(defun dnt--browse-url* ()
   (add-function :filter-args (symbol-function 'browse-url)
                 (lambda (args)
                   (cons (dnt (car args))
                         (cdr args)))))
+
+;;;###autoload
+(defun dnt-browse-url ()
+  "Enable tracker removal from browsed URLs."
+  (eval-after-load "browse-url.el" #'dnt--browse-url*))
 
 (ert-deftest dnt--test-clean-tapatalk ()
   (should (string= "https://forums.arcade-museum.com/showthread.php?t=446645" (dnt "https://r.tapatalk.com/shareLink?share_fid=19164&share_tid=446645&url=https%3A%2F%2Fforums%2Earcade-museum%2Ecom%2Fshowthread%2Ephp%3Ft%3D446645&share_type=t"))))
