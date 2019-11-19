@@ -74,6 +74,10 @@
   (setf (url-filename urlobj) (car (url-path-and-query urlobj)))
   (url-recreate-url urlobj))
 
+(defun dnt--clean-walmart (urlobj)
+  (setf (url-filename urlobj) (car (url-path-and-query urlobj)))
+  (url-recreate-url urlobj))
+
 (defun dnt--extract-url-from-query (urlobj param)
   "Return a URLOBJ from the PARAM query of a different URL."
   (cadr (assoc param (url-parse-query-string (cdr (url-path-and-query urlobj))))))
@@ -119,6 +123,9 @@
 
      ((s-contains? "steamcommunity.com/linkfilter" url)
       (dnt--extract-url-from-query urlobj "url"))
+
+     ((s-contains? "walmart.com/ip/" url)
+      (dnt--clean-walmart urlobj))
 
      (t url))))
 
@@ -170,6 +177,10 @@
 
 (ert-deftest dnt--test-nyt ()
   (should (string= "https://www.nytimes.com/2019/03/16/us/cindy-yang-trump-donations.html" (dnt "https://www.nytimes.com/2019/03/16/us/cindy-yang-trump-donations.html?smid=nytcore-ios-share"))))
+
+(ert-deftest dnt--test-walmart ()
+  (should (string= "https://www.walmart.com/ip/NAMCO-Arcade-Machine-Collection-1-12-Replica-Galaga/489524770"
+                   (dnt "https://www.walmart.com/ip/NAMCO-Arcade-Machine-Collection-1-12-Replica-Galaga/489524770?wmlspartner=wmtlabs&adid=22222222222131319526&wmlspartner=wmtlabs&wl0=e&wl1=s&wl2=c&wl3=75110454177365&wl4=pla-4578710024064993&wl5=&wl6=&wl7=&%20wl10=Walmart&wl12=489524770_10000001201&wl14=buy%20arcade%20video%20games&veh=sem&msclkid=3c9a01706e901cbdbb8c5ca407bb89a8"))))
 
 (provide 'dnt)
 
