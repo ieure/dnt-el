@@ -1,6 +1,6 @@
 ;;; dnt.el --- Do Not Track           -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Ian Eure
+;; Copyright (C) 2019, 2020  Ian Eure
 
 ;; Author: Ian Eure <ian@retrospec.tv>
 ;; URL: https://github.com/ieure/dnt-el
@@ -146,7 +146,7 @@
 ;;;###autoload
 (defun dnt-emms ()
   "Enable tracker removal from URLs added to EMMS."
-  (eval-after-load "emms.el" #'dnt--emms*))
+  (eval-after-load "emms" #'dnt--emms*))
 
 (defun dnt--browse-url* ()
   (add-function :filter-args (symbol-function 'browse-url)
