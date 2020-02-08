@@ -60,6 +60,11 @@
   "Strip Megaphone.fm tracking from URLs."
   (url-recreate-url (dnt--filter-qs urlobj (lambda (kv) (string= "updated" (car kv))))))
 
+(defun dnt--clean-pdstfm (urlobj)
+  "Strip pdst.fm tracking from URLs."
+  (concat "https://" (caddr (s-split-up-to "/" (car (url-path-and-query urlobj)) 2)))
+)
+
 (defun dnt--clean-google-analytics (urlobj)
   "Return a URLOBJ with Google Analytics tracking removed."
     (url-recreate-url (dnt--filter-qs urlobj (lambda (kv) (s-starts-with? "utm_" (car kv))))))
@@ -99,6 +104,9 @@
      ((and (s-contains? "megaphone.fm" (url-host urlobj))
            (s-contains? "updated=" url))
       (dnt--clean-megaphonefm urlobj))
+
+     ((string= "pdst.fm" (url-host urlobj))
+      (dnt--clean-pdstfm urlobj))
 
      ((s-contains? "utm_" url)
       (dnt--clean-google-analytics urlobj))
@@ -174,6 +182,9 @@
 
 (ert-deftest dnt--test-chartable ()
   (should (string= "https://rss.art19.com/episodes/47d9a8cd-4a25-408d-9205-3a13d36e4546.mp3" (dnt "https://dts.podtrac.com/redirect.mp3/chtbl.com/track/9EE2G/rss.art19.com/episodes/47d9a8cd-4a25-408d-9205-3a13d36e4546.mp3"))))
+
+(ert-deftest dnt--test-pdst.fm ()
+  (should (string= "https://rss.art19.com/episodes/daa6e7ad-d494-4632-8491-69240f987cc5.mp3" (dnt "https://pdst.fm/e/rss.art19.com/episodes/daa6e7ad-d494-4632-8491-69240f987cc5.mp3"))))
 
 (ert-deftest dnt--test-nyt ()
   (should (string= "https://www.nytimes.com/2019/03/16/us/cindy-yang-trump-donations.html" (dnt "https://www.nytimes.com/2019/03/16/us/cindy-yang-trump-donations.html?smid=nytcore-ios-share"))))
