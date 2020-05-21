@@ -34,7 +34,7 @@
 
 (defun dnt--filter-qs (urlobj pred)
   (pcase (url-path-and-query urlobj)
-    (`(,path . ,query)
+    ((and `(,path . ,query) (guard query))
      (let ((cleaned (cl-remove-if pred (url-parse-query-string query))))
        (setf (url-filename urlobj)
              (concat path (when cleaned
@@ -78,6 +78,10 @@
   "Return a URLOBJ with New York Times tracking removed."
   (setf (url-filename urlobj) (car (url-path-and-query urlobj)))
   (url-recreate-url urlobj))
+
+(defun dnt--clean-twitter (urlobj)
+  "Return a URLOBJ with Twitter tracking removed."
+  (url-recreate-url (dnt--filter-qs urlobj (lambda (kv) (string= "ref_src" (car kv))))))
 
 (defun dnt--clean-walmart (urlobj)
   (setf (url-filename urlobj) (car (url-path-and-query urlobj)))
@@ -126,6 +130,9 @@
      ((string= "out.reddit.com" (url-host urlobj))
       (dnt--extract-url-from-query urlobj "url"))
 
+     ((string= "twitter.com" (url-host urlobj))
+      (dnt--clean-twitter urlobj))
+
      ((string= "r.tapatalk.com" (url-host urlobj))
       (dnt--extract-url-from-query urlobj "url"))
 
@@ -166,6 +173,11 @@
 (defun dnt-browse-url ()
   "Enable tracker removal from browsed URLs."
   (eval-after-load "browse-url.el" #'dnt--browse-url*))
+
+ ;; Tests
+
+(ert-deftest dnt--test-filter-qs ()
+  (should (eq nil (cdr (url-path-and-query (dnt--filter-qs (url-generic-parse-url "https://example.com/no-query-string")  #'identity))))))
 
 (ert-deftest dnt--test-clean-tapatalk ()
   (should (string= "https://forums.arcade-museum.com/showthread.php?t=446645" (dnt "https://r.tapatalk.com/shareLink?share_fid=19164&share_tid=446645&url=https%3A%2F%2Fforums%2Earcade-museum%2Ecom%2Fshowthread%2Ephp%3Ft%3D446645&share_type=t"))))
