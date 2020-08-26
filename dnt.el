@@ -130,6 +130,9 @@
      ((string= "out.reddit.com" (url-host urlobj))
       (dnt--extract-url-from-query urlobj "url"))
 
+     ((string= "getpocket.com" (url-host urlobj))
+      (dnt--extract-url-from-query urlobj "url"))
+
      ((string= "twitter.com" (url-host urlobj))
       (dnt--clean-twitter urlobj))
 
