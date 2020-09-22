@@ -115,6 +115,9 @@
      ((s-contains? "utm_" url)
       (dnt--clean-google-analytics urlobj))
 
+     ((s-contains? "www.google.com/url" url) (or (dnt--extract-url-from-query urlobj "q")
+                                                 (dnt--extract-url-from-query urlobj "url")))
+
      ((s-contains? "smid=" url)
       (dnt--clean-nyt urlobj))
 
@@ -139,11 +142,17 @@
      ((string= "r.tapatalk.com" (url-host urlobj))
       (dnt--extract-url-from-query urlobj "url"))
 
+     ((string= "click.linksynergy.com" (url-host urlobj))
+      (dnt--extract-url-from-query urlobj "murl"))
+
      ((s-contains? "steamcommunity.com/linkfilter" url)
       (dnt--extract-url-from-query urlobj "url"))
 
      ((s-contains? "walmart.com/ip/" url)
       (dnt--clean-walmart urlobj))
+
+     ((s-contains? "washingtonpost.com/gdpr-consent" url)
+      (dnt--extract-url-from-query urlobj "next_url"))
 
      (t url))))
 
@@ -172,7 +181,20 @@
                     (list (dnt (car url-arg)))))
     nil))
 
-(defun dnt--browse-url* ()
+;;;###autoload
+(defun dnt-elfeed ()
+  "Enable tracker removal from URLs in Elfeed."
+  (with-demoted-errors "elfeed is not installed"
+    (require 'elfeed))
+  (when (featurep 'elfeed)
+    (add-function :filter-args (symbol-function 'elfeed--download-enclosure)
+                  (lambda (args)
+                    (setf (car args) (dnt (car args)))))
+    nil))
+
+;;;###autoload
+(defun dnt-browse-url ()
+  "Enable tracker removal from browsed URLs."
   (add-function :filter-args (symbol-function 'browse-url)
                 (lambda (args)
                   (cons (dnt (car args))
