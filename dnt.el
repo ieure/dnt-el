@@ -1,6 +1,6 @@
 ;;; dnt.el --- Do Not Track           -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019, 2020  Ian Eure
+;; Copyright (C) 2019, 2020, 2021  Ian Eure
 
 ;; Author: Ian Eure <ian@retrospec.tv>
 ;; URL: https://github.com/ieure/dnt-el
@@ -62,8 +62,7 @@
 
 (defun dnt--clean-pdstfm (urlobj)
   "Strip pdst.fm tracking from URLs."
-  (concat "https://" (caddr (s-split-up-to "/" (car (url-path-and-query urlobj)) 2)))
-)
+  (concat "https://" (caddr (s-split-up-to "/" (car (url-path-and-query urlobj)) 2))))
 
 (defun dnt--clean-google-analytics (urlobj)
   "Return a URLOBJ with Google Analytics tracking removed."
@@ -93,16 +92,15 @@
 
 (defun dnt--clean (url)
   "Return a URL with one layer of tracking services removed."
-  (let* ((urlobj (url-generic-parse-url url)))
+  (let ((urlobj (url-generic-parse-url url)))
     (cond
      ((string= "play.podtrac.com" (url-host urlobj))
       (dnt--clean-podtrac-play urlobj))
 
-     ((or (string= "www.podtrac.com" (url-host urlobj))
-          (string= "dts.podtrac.com" (url-host urlobj)))
+     ((member (url-host urlobj) '("www.podtrac.com" "dts.podtrac.com"))
       (dnt--clean-podtrac-www urlobj))
 
-     ((string= "chtbl.com" (url-host urlobj))
+     ((member (url-host urlobj) '("chtbl.com" "chrt.fm"))
       (dnt--clean-chartable urlobj))
 
      ((and (s-contains? "megaphone.fm" (url-host urlobj))
@@ -235,6 +233,10 @@
 (ert-deftest dnt--test-walmart ()
   (should (string= "https://www.walmart.com/ip/NAMCO-Arcade-Machine-Collection-1-12-Replica-Galaga/489524770"
                    (dnt "https://www.walmart.com/ip/NAMCO-Arcade-Machine-Collection-1-12-Replica-Galaga/489524770?wmlspartner=wmtlabs&adid=22222222222131319526&wmlspartner=wmtlabs&wl0=e&wl1=s&wl2=c&wl3=75110454177365&wl4=pla-4578710024064993&wl5=&wl6=&wl7=&%20wl10=Walmart&wl12=489524770_10000001201&wl14=buy%20arcade%20video%20games&veh=sem&msclkid=3c9a01706e901cbdbb8c5ca407bb89a8"))))
+
+(ert-deftest dnt--test-chrtfm ()
+  (should (string= "https://rss.art19.com/episodes/user/iflK1omSrLPRbPL7T-z38sBn2XLqJysy/7afc199c-eb02-4fd1-bd18-bb90c8e11afe.mp3"
+                   (dnt "https://chrt.fm/track/9EE2G/pdst.fm/e/rss.art19.com/episodes/user/iflK1omSrLPRbPL7T-z38sBn2XLqJysy/7afc199c-eb02-4fd1-bd18-bb90c8e11afe.mp3"))))
 
 (provide 'dnt)
 
