@@ -157,10 +157,11 @@
 ;;;###autoload
 (defun dnt (url)
   "Return a URL with tracking services removed."
-  (let ((new (dnt--clean url)))
-    (if (string= url new)
-        url
-      (dnt new))))
+  (if (not (stringp url)) url
+    (let ((new (dnt--clean url)))
+      (if (string= url new)
+          url
+        (dnt new)))))
 
 (defun dnt--emms* ()
   "Enable tracker removal from URLs added to EMMS."
@@ -202,6 +203,11 @@
 (defun dnt-browse-url ()
   "Enable tracker removal from browsed URLs."
   (eval-after-load "browse-url.el" #'dnt--browse-url*))
+
+;;;###autoload
+(defun dnt-shr ()
+  (unless (featurep 'shr) (require 'shr))
+  (add-function :filter-return (symbol-function 'shr-url-at-point) #'dnt))
 
  ;; Tests
 
