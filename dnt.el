@@ -200,11 +200,6 @@
                         (cdr args)))))
 
 ;;;###autoload
-(defun dnt-browse-url ()
-  "Enable tracker removal from browsed URLs."
-  (eval-after-load "browse-url.el" #'dnt--browse-url*))
-
-;;;###autoload
 (defun dnt-shr ()
   (unless (featurep 'shr) (require 'shr))
   (add-function :filter-return (symbol-function 'shr-url-at-point) #'dnt))
